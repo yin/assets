@@ -17,12 +17,12 @@
 			uniform mat4 modelViewMatrix; // optional
 			uniform mat4 projectionMatrix; // optional
 			attribute vec3 position;
-			//attribute vec4 color;
+			attribute vec4 normal;
 			varying vec3 vPosition;
-			//varying vec4 vColor;
+			varying vec4 vNormal;
 			void main()	{
 				vPosition = position;
-				//vColor = color;
+				vNormal = normal;
 				gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
 			}
     </script>
@@ -33,10 +33,10 @@
 			precision mediump int;
 			uniform float time;
 			varying vec3 vPosition;
-			//varying vec4 vColor;
+			varying vec4 vNormal;
 			void main()	{
 				vec4 color = vec4( 0.5, 1.0, 0.0, 1.0 );
-				color.r += sin( vPosition.x * 10.0 + time ) * 0.5;
+				color.r += sin( vNormal.y * 10.0 + time ) * 0.5;
 				gl_FragColor = color;
 			}
     </script>
@@ -44,7 +44,6 @@
     <script src="three.min.js"></script>
     <script>
 
-      var SAMPLE = (function() {
 
         // create and set up the scene, etc
         var width = window.innerWidth;
@@ -104,11 +103,13 @@
         document.body.appendChild(renderer.domElement);
 
         function animate() {
-
-          time += 0.005;
-
-          camera.position.x = Math.sin(time) * 400;
-          camera.position.z = Math.cos(time) * 400;
+          var time = performance.now();
+          var object = scene.children[ 2 ];
+          object.rotation.y = time * 0.0005;
+          object.material.uniforms.time.value = time * 0.005;
+          
+          camera.position.x = Math.sin(time * 0.0005) * 400;
+          camera.position.z = Math.cos(time * 0.0005) * 400;
           camera.lookAt(ORIGIN);
 
           renderer.render(scene,camera);
@@ -117,7 +118,6 @@
 
         requestAnimationFrame(animate);
 
-      })();
     </script>
   </body>
 </html>
