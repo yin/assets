@@ -22,11 +22,20 @@ blender -b blender/environment.blend -a
 rm -f blender/environment.jpg
 
 mkdir -p output/
-mv blender/0001.png output/pos-z.png
-mv blender/0002.png output/neg-x.png
-mv blender/0003.png output/neg-z.png
-mv blender/0004.png output/pos-x.png
-mv blender/0005.png output/neg-y.png
-mv blender/0006.png output/pos-y.png
+if [ $1 == "small" ]; then 
+    convert blender/0001.png -size 320 output/pos-z.jpg
+    convert blender/0002.png -size 320 output/neg-x.jpg
+    convert blender/0003.png -size 320 output/neg-z.jpg
+    convert blender/0004.png -size 320 output/pos-x.jpg
+    convert blender/0005.png -size 320 output/neg-y.jpg
+    convert blender/0006.png -size 320 output/pos-y.jpg
+else
+    mv blender/0001.png output/pos-z.png
+    mv blender/0002.png output/neg-x.png
+    mv blender/0003.png output/neg-z.png
+    mv blender/0004.png output/pos-x.png
+    mv blender/0005.png output/neg-y.png
+    mv blender/0006.png output/pos-y.png
+fi
 
 rm -rf blender/
