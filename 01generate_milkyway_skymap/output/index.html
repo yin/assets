@@ -165,7 +165,7 @@
 			+ dot(m1*m1, vec2( dot( p3, x3 ), dot( p4, x4 ) ) ) ) ;
 
 			}
-			
+
 			void main()	{
 			  float v = snoise(vec4(vPosition, time*0.05)) * 0.2 + 0.8;
 			  float v2 = max(snoise(vec4(vPosition * 0.033, 0.0)) * 3.0 - 2.0, 0.0);
@@ -228,12 +228,18 @@
     </script>
     
     <script src="three.min.js"></script>
+
+    <div id="hud" style="position:absolute;color:white;">
+      Temperature <input type="text" value="3700" onchange="updateTemperature(this.value);"/>K </br>
+      Distance <input type="text" value="400" onchange="updateDistance(this.value);">
+    </div>
+    
     <script>
         // create and set up the scene, etc
         var width = window.innerWidth;
         var height = window.innerHeight;
         var scene = new THREE.Scene();
-        var camera = new THREE.PerspectiveCamera(35, width / height, 1, 1500);
+        var camera = new THREE.PerspectiveCamera(35, width / height, 1, 150000);
         var renderer = new THREE.WebGLRenderer({antialias:true});
         var time = 0;
         var ORIGIN = new THREE.Vector3();
@@ -249,7 +255,8 @@
               'neg-z.jpg'
             ];
 
-	var star_temp = 1500;
+	var distance = 400;
+	var star_temp = 3700;
 	var star_radius = 60.0;
 	var star_color = kelvinToRGB(star_temp)
 	star_color[3] = 0.5;
@@ -318,8 +325,8 @@
 	
           star.material.uniforms.time.value = time * 0.005;
           
-          camera.position.x = Math.sin(time * 0.0001) * 400;
-          camera.position.z = Math.cos(time * 0.0001) * 400;
+          camera.position.x = Math.sin(time * 0.0001) * distance;
+          camera.position.z = Math.cos(time * 0.0001) * distance;
           camera.lookAt(ORIGIN);
 	
           renderer.render(scene,camera);
@@ -384,15 +391,30 @@
 				}
 				}
 
-				out[0] = red / 256.0;
-		out[1] = green / 256.0;
-		out[2] = blue / 256.0;
+				out[0] = red / 256.0 * ((star_temp - 800.0) / 2000.0 );
+		out[1] = green / 256.0 * ((star_temp - 800.0) / 2000.0 );
+		out[2] = blue / 256.0 * ((star_temp - 800.0) / 2000.0 );
 		out[3] = 1.0;
 		return out
-		}
-	
-        requestAnimationFrame(animate);
+	}
 
+	function updateDistance(d) {
+				distance = d;
+	}
+
+	function updateTemperature(temp) {
+				star_temp = temp;
+				star_color = kelvinToRGB(star_temp)
+				var star = scene.children[ 2 ];
+				var corona = scene.children[ 3 ];
+				star.material.uniforms.color.value = Array.from(star_color);
+				star.material.uniforms.color.needsUpdate = true;
+				star_color[3] = 0.5;
+				corona.material.uniforms.color.value = star_color;
+				corona.material.uniforms.color.needsUpdate = true
+console.log(star_color)
+	}
+        requestAnimationFrame(animate);
     </script>
   </body>
 </html>
