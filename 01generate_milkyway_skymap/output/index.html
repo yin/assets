@@ -11,7 +11,7 @@
     </style>
   </head>
   <body>
-    <script id="vertexShader" type="x-shader/x-vertex">
+    <script id="vs_star_surface" type="x-shader/x-vertex">
 			precision mediump float;
 			precision mediump int;
 			uniform mat4 modelViewMatrix; // optional
@@ -22,16 +22,17 @@
 			varying vec4 vNormal;
 			void main()	{
 				vPosition = position;
-				vNormal = normal;
+			vNormal = normal;
 				gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
 			}
     </script>
 
-    <script id="fragmentShader" type="x-shader/x-fragment">
+    <script id="fs_star_surface" type="x-shader/x-fragment">
     
 			precision mediump float;
 			precision mediump int;
 			uniform float time;
+			uniform vec4 color;
 			varying vec3 vPosition;
 			varying vec4 vNormal;
 			//
@@ -164,12 +165,65 @@
 			+ dot(m1*m1, vec2( dot( p3, x3 ), dot( p4, x4 ) ) ) ) ;
 
 			}
+			
 			void main()	{
-			  vec4 color = vec4( 0.5, 1.0, 0.0, 1.0 );
-			  float v = snoise(vec4(vPosition, time*0.05)) * 0.5 + 0.5;
+			  float v = snoise(vec4(vPosition, time*0.05)) * 0.2 + 0.8;
 			  float v2 = max(snoise(vec4(vPosition * 0.033, 0.0)) * 3.0 - 2.0, 0.0);
-			  color = vec4(0.5 + v, v, v - 0.5, 1.0) - vec4(v2, v2, v2, 0.0);
-			  gl_FragColor = color;
+			  vec4 mixed = vec4(color.xyz*v, 1.0) - vec4(v2, v2, v2, 0.0);
+			  
+			  gl_FragColor = mixed;
+			}
+    </script>
+        <script id="vs_billboard" type="x-shader/x-vertex">
+			precision mediump float;
+			precision mediump int;
+			uniform mat4 modelViewMatrix; // optional
+			uniform mat4 projectionMatrix; // optional
+			uniform vec3 center;
+			uniform vec2 size;
+			attribute vec3 position; // vertex, not sprite center
+			varying vec3 vPosition;
+			varying vec4 vNormal;
+
+			void main() {
+			vPosition = position;
+			  vec3 camera_f = vec3(
+			    modelViewMatrix[0][2],
+			    modelViewMatrix[1][2],
+			    modelViewMatrix[2][2]);
+			  vec3 camera_r = vec3(
+			    modelViewMatrix[0][0],
+			    modelViewMatrix[1][0],
+			    modelViewMatrix[2][0]);
+			  vec3 camera_u = vec3(
+			    modelViewMatrix[0][1],
+			    modelViewMatrix[1][1],
+			    modelViewMatrix[2][1]);
+			vNormal = vec4(camera_f, 1.0);
+			  vec3 vertexPosition = center
+			      + camera_r * position.x * size.x
+			      + camera_u * position.y * size.y;
+			  gl_Position = projectionMatrix * modelViewMatrix * vec4( vertexPosition, 1.0 );
+			}
+    </script>
+
+    <script id="fs_billboard_hallo" type="x-shader/x-fragment">
+			precision mediump float;
+			precision mediump int;
+			uniform float time;
+			uniform float offset;
+			uniform vec4 color;
+			varying vec3 vPosition;
+			varying vec4 vNormal;
+
+			void main()	{
+			  float d = 1.0-sqrt(vPosition.x*vPosition.x + vPosition.y*vPosition.y) * 0.01;
+			  float a = atan(vPosition.y, vPosition.x);
+			  d += sin(a*20.0) * 0.02;
+			  d += offset;
+	
+	   		  vec4 mixed = vec4(color.xyz, color.w*d);
+			  gl_FragColor = mixed;
 			}
     </script>
     
@@ -195,6 +249,12 @@
               'neg-z.jpg'
             ];
 
+	var star_temp = 1500;
+	var star_radius = 60.0;
+	var star_color = kelvinToRGB(star_temp)
+	star_color[3] = 0.5;
+	var corona_radius = 250.0;
+
         // wrap it up into the object that we need
         var cubemap = (new THREE.CubeTextureLoader()).load(urls);
         
@@ -213,20 +273,39 @@
 
         var starMaterial = new THREE.RawShaderMaterial( {
           uniforms: {
-            time: { value: 1.0 }
+            time: { value: 1.0 },
+	    color: { value: star_color }
           },
-          vertexShader: document.getElementById( 'vertexShader' ).textContent,
-          fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
-          side: THREE.DoubleSide,
-          transparent: true
+          vertexShader: document.getElementById( 'vs_star_surface' ).textContent,
+          fragmentShader: document.getElementById( 'fs_star_surface' ).textContent,
         } );
       
         var star = new THREE.Mesh(
-          new THREE.SphereGeometry(60, 20, 20),
+          new THREE.SphereGeometry(star_radius, 20, 20),
           starMaterial
         );
+	
+	var coronaMaterial = new THREE.RawShaderMaterial( {
+	  uniforms: {
+            time: { value: 1.0 },
+	    offset: { value: star_radius/corona_radius },
+	    size: { value: [ 1.0, 1.0 ] },
+	    center: { value: star.position.toArray() },
+	    color: { value: star_color },
+          },
+          vertexShader: document.getElementById( 'vs_billboard' ).textContent,
+          fragmentShader: document.getElementById( 'fs_billboard_hallo' ).textContent,
+          side: THREE.DoubleSide,
+          transparent: true
+        } );
 
+	var corona = new THREE.Mesh(
+	  new THREE.PlaneGeometry(corona_radius, corona_radius),
+	  coronaMaterial
+	);
+	
         scene.add(star);
+	scene.add(corona);
         scene.add(camera);
 
         renderer.setSize(width, height);
@@ -234,17 +313,84 @@
 
         function animate() {
           var time = performance.now();
-          var object = scene.children[ 2 ];
-          object.material.uniforms.time.value = time * 0.005;
+          var star = scene.children[ 2 ];
+	  var corona = scene.children[ 3 ];
+	
+          star.material.uniforms.time.value = time * 0.005;
           
           camera.position.x = Math.sin(time * 0.0001) * 400;
           camera.position.z = Math.cos(time * 0.0001) * 400;
           camera.lookAt(ORIGIN);
-
+	
           renderer.render(scene,camera);
           requestAnimationFrame(animate);
         }
 
+	function kelvinToRGB (temp, out) {
+	if (!Array.isArray(out)) {
+	out = [0, 0, 0]
+	}
+
+	temp = temp / 100
+	var red, blue, green
+
+	if (temp <= 66) {
+		    red = 255
+		    } else {
+		    red = temp - 60
+		    red = 329.698727466 * Math.pow(red, -0.1332047592)
+		    if (red < 0) {
+			      red = 0
+			      }
+			      if (red > 255) {
+		    red = 255
+		    }
+		    }
+
+		    if (temp <= 66) {
+				green = temp
+				green = 99.4708025861 * Math.log(green) - 161.1195681661
+				if (green < 0) {
+					    green = 0
+					    }
+					    if (green > 255) {
+				green = 255
+				}
+				} else {
+				green = temp - 60
+				green = 288.1221695283 * Math.pow(green, -0.0755148492)
+				if (green < 0) {
+					    green = 0
+					    }
+					    if (green > 255) {
+				green = 255
+				}
+				}
+
+				if (temp >= 66) {
+		    blue = 255
+		    } else {
+		    if (temp <= 19) {
+				blue = 0
+				} else {
+				blue = temp - 10
+				blue = 138.5177312231 * Math.log(blue) - 305.0447927307
+				if (blue < 0) {
+					   blue = 0
+					   }
+					   if (blue > 255) {
+				blue = 255
+				}
+				}
+				}
+
+				out[0] = red / 256.0;
+		out[1] = green / 256.0;
+		out[2] = blue / 256.0;
+		out[3] = 1.0;
+		return out
+		}
+	
         requestAnimationFrame(animate);
 
     </script>
