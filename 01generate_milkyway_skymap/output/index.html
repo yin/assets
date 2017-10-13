@@ -3,10 +3,24 @@
   <head>
     <meta charset="utf-8">
     <title>Environment Map preview</title>
+    <link href="https://fonts.googleapis.com/css?family=Ubuntu+Mono" rel="stylesheet">
     <style>
       html, body {
         padding: 0;
         margin: 0;
+      }
+      #hud {
+        font-family: 'Ubuntu Mono', monospace;
+        position:absolute;
+        color:white;
+      }
+      #hud input[type="text"] {
+        font-family: 'Ubuntu Mono', monospace;
+        color:white;
+        border-width: 0 0 1px 0;
+        border-color: white;
+        background: none;
+        width: 4em;
       }
     </style>
   </head>
@@ -174,6 +188,7 @@
 			  gl_FragColor = mixed;
 			}
     </script>
+
         <script id="vs_billboard" type="x-shader/x-vertex">
 			precision mediump float;
 			precision mediump int;
@@ -229,7 +244,7 @@
     
     <script src="three.min.js"></script>
 
-    <div id="hud" style="position:absolute;color:white;">
+    <div id="hud">
       Temperature <input type="text" value="3700" onchange="updateTemperature(this.value);"/>K </br>
       Distance <input type="text" value="400" onchange="updateDistance(this.value);">
     </div>
