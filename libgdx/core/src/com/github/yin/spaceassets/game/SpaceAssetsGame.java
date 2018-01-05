@@ -1,6 +1,6 @@
 package com.github.yin.spaceassets.game;
 
-import com.badlogic.gdx.ApplicationAdapter;
+import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
@@ -12,7 +12,7 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 
-public class SpaceAssetsGame extends ApplicationAdapter {
+public class SpaceAssetsGame implements ApplicationListener {
 	ModelBatch batch;
 	Model model;
 	ModelInstance modelInstance;
@@ -47,5 +47,24 @@ public class SpaceAssetsGame extends ApplicationAdapter {
 	public void dispose () {
 		batch.dispose();
 		model.dispose();
+	}
+
+	@Override
+	public void resize(int width, int height) {
+		camera.viewportWidth = width;
+		camera.viewportHeight = height;
+		camera.update(true);
+	}
+
+	@Override
+	public void pause() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void resume() {
+		// TODO Auto-generated method stub
+		
 	}
 }
