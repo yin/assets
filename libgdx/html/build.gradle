@@ -7,8 +7,8 @@ gwt {
     minHeapSize="1G"
 
     src = files(file("src/")) // Needs to be in front of "modules" below.
-    modules 'com.github.yin.spaceassets.game.GdxDefinition'
-    devModules 'com.github.yin.spaceassets.game.GdxDefinitionSuperdev'
+    modules 'com.github.yin.spaceassets.sims.GdxDefinition'
+    devModules 'com.github.yin.spaceassets.sims.GdxDefinitionSuperdev'
     project.webAppDirName = 'webapp'
 
     compiler {
@@ -53,8 +53,10 @@ draftWar {
    from "war"
 }
 
-task addSource << {
-	sourceSets.main.compileClasspath += files(project(':core').sourceSets.main.allJava.srcDirs)
+task addSource {
+    doLast {
+        sourceSets.main.compileClasspath += files(project(':core').sourceSets.main.allJava.srcDirs)
+    }
 }
 
 tasks.compileGwt.dependsOn(addSource)

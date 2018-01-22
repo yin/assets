@@ -1,6 +1,5 @@
-package com.github.yin.spaceassets.game.generators;
+package com.github.yin.spaceassets.sims.generators;
 
-import com.badlogic.ashley.core.Family.Builder;
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder.VertexInfo;
 
@@ -36,13 +35,13 @@ public class SphereGenerator {
 			return;
 		}
 
-		for (int a = 0; a < div + 1; a++) {
+		for (int a = 0; a <= div; a++) {
 			if (a == 0) {
-				put(meshBuilder, base[3 * 0 + 0], base[3 * 0 + 1], base[3 * 0 + 2]);
+				put(meshBuilder, base[3 * 0 + 0], base[3 * 0 + 1], base[3 * 0 + 2], w, h, d);
 			} else {
 				float ad = ((float) a) / div;
 
-				for (int b = 0; b < a + 1; b++) {
+				for (int b = 0; b <= a; b++) {
 					float bc = ((float) b) / a;
 
 					float d0 = base[3 * 1 + 0] * (1 - bc) + base[3 * 2 + 0] * bc;
@@ -54,7 +53,7 @@ public class SphereGenerator {
 					float norm = (float) Math.pow(out0 * out0 + out1 * out1 + out2 * out2, -0.5);
 					short vertIndex = 0;
 					try {
-						vertIndex = put(meshBuilder, out0 * norm, out1 * norm, out2 * norm);
+						vertIndex = put(meshBuilder, out0 * norm, out1 * norm, out2 * norm, w, h, d);
 
 					} catch (ArrayIndexOutOfBoundsException e) {
 						System.out.println("a:" + a + " b:" + b + " vP:" + vertPos + " tP:" + trisPos);
@@ -62,11 +61,11 @@ public class SphereGenerator {
 					}
 					try {
  						if (b > 0) {
-							triangle(meshBuilder, (short) (vertIndex - 1), (short) (vertIndex - (2 * a + 1)), vertIndex);
+							triangle(meshBuilder, vertIndex, (short) (vertIndex-a-1), (short) (vertIndex-1));
 
 						}
-						if (b < a) {
-							//meshBuilder.triangle(vertIndex, (short) (vertIndex - (2 * a + 1)), (short) (vertIndex - 2 * a));
+						if (b > 0 && b < a) {
+							triangle(meshBuilder, vertIndex, (short) (vertIndex - a), (short) (vertIndex - a - 1));
 						}
 					} catch (ArrayIndexOutOfBoundsException e) {
 						System.out.println("a:" + a + " b:" + b + " vP:" + vertPos + " tP:" + trisPos);
@@ -95,10 +94,10 @@ public class SphereGenerator {
 		return dest;
 	}
 
-	private short put(MeshPartBuilder builder, float f, float g, float h) {
+	private short put(MeshPartBuilder builder, float f, float g, float h, float s, float t, float u) {
 		System.out.println(f + "  " + g + "  " + h);
 
-		return builder.vertex(new VertexInfo().setPos(f, g, h).setCol(f, g, h, 1.0f));
+		return builder.vertex(new VertexInfo().setPos(f*s, g*t, h*u).setCol(f, g, h, 1.0f).setNor(f, g, h));
 	}
 
 	private short put(float f, float g, float h) {

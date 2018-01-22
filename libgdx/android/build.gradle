@@ -18,7 +18,7 @@ android {
         exclude 'META-INF/robovm/ios/robovm.xml'
     }
     defaultConfig {
-        applicationId "com.github.yin.spaceassets.game"
+        applicationId "com.github.yin.spaceassets.sims"
         minSdkVersion 9
         targetSdkVersion 26
         versionCode 1
@@ -79,7 +79,7 @@ task run(type: Exec) {
     }
 
     def adb = path + "/platform-tools/adb"
-    commandLine "$adb", 'shell', 'am', 'start', '-n', 'com.github.yin.spaceassets.game/com.github.yin.spaceassets.game.AndroidLauncher'
+    commandLine "$adb", 'shell', 'am', 'start', '-n', 'com.github.yin.spaceassets.sims/com.github.yin.spaceassets.sims.AndroidLauncher'
 }
 
 // sets up the Android Eclipse project, using the old Ant based build.

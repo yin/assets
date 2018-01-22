@@ -1,9 +1,9 @@
-package com.github.yin.spaceassets.game.client;
+package com.github.yin.spaceassets.sims.client;
 
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.backends.gwt.GwtApplication;
 import com.badlogic.gdx.backends.gwt.GwtApplicationConfiguration;
-import com.github.yin.spaceassets.game.SpaceAssetsGame;
+import com.github.yin.spaceassets.sims.SpaceAssetsSims;
 
 public class HtmlLauncher extends GwtApplication {
 
@@ -46,6 +46,6 @@ public class HtmlLauncher extends GwtApplication {
 
         @Override
         public ApplicationListener createApplicationListener () {
-                return new SpaceAssetsGame();
+                return new SpaceAssetsSims();
         }
 }
